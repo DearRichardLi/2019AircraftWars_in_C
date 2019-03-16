@@ -7,40 +7,37 @@
 //DEFINE BASIC GLOBAL VARIABLE START
 #define height 21 
 #define width 26 
-#define dfly_time 5 // Total enemies 
+#define nEnemies 5 // Total enemies 
 
-int space[height][width] = {0}; // Display 
+int Display[height][width]; // Display 
 
 int player_x, player_y; // Player position 
 
-int CRCM; 	// Game State 
-int num; 		// Score 
+int GameState; 	// Game State 
+int Score; 		// Score 
 
-int demon_x[dfly_time], demon_y[dfly_time]; // Enemy Positions 
+int Enemy_x[nEnemies], Enemy_y[nEnemies]; // Enemy Positions 
 
-int bs_HP, bs_appear, bs_move, bs_skill; // Boss related variables 
-int bs_x[10], bs_y[10]; // Boss Positions 
-int bs_atk_x, bs_atk_y; // Boss Gun Position 
-
-void HideCHTypewriting(void){ 
-}
+int Boss_HP, Boss_appear, Boss_move, Boss_skill; // Boss related variables 
+int Boss_x[10], Boss_y[10]; // Boss Positions 
+int Boss_atk_x, Boss_atk_y; // Boss Gun Position 
 
 void HideCursor(void){ 
 	CONSOLE_CURSOR_INFO cursor_info = {1, 0}; 
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info); 
 }
 
-void gotoxy(int x, int y){ 
+void setCursor(int x, int y){ 
   COORD pos = {x, y}; 
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); 
 	SetConsoleCursorPosition(hOut, pos); 
 }
 
-void output(void){ // Render On Screen 
-	gotoxy(0,0);  
+void Render(void){ // Render On Screen 
+	setCursor(0,0);  
   for(int i = 0 ; i < height ; i++){ 
 	   for(int j = 0 ; j < width ; j++){ // !!Changed to switch-case structure 
-	   	switch(space[i][j]){ 
+	   	switch(Display[i][j]){ 
 	   		case 0: printf(" "); break; // Empty 
 	   		case 1: printf("U"); break; // Player 
 	   		case 2: printf("*"); break; // Enemy 
@@ -48,7 +45,7 @@ void output(void){ // Render On Screen
 	   		case 4: printf("||"); break; // Wall 
 	   		case 5: printf("="); break; // Bottom 
 	   		case 6: 
-	   			if(bs_appear == 1) printf("#"); break; // Boss 
+	   			if(Boss_appear == 1) printf("#"); break; // Boss 
 	   	}
     }
     printf("\n"); 
@@ -57,41 +54,42 @@ void output(void){ // Render On Screen
 
 
 
-void RealTimeProcessing(void){ 
+void EngineCycle(void){ 
 //*************************************************************************** 
 // Bullets hit & move 
 	for(int i = 0 ; i < height ; i++){  
 		for(int j = 0 ; j < width ; j++){  // preform traversal on all points  
-			if(space[i][j] == 3){ // If it is Bullet then... 
-				for(int k = 0 ; k < dfly_time ; k++){ // Hit enemy? 
-				  if(i == demon_x[k] && j == demon_y[k]){ 
-			    	space[demon_x[k]][demon_y[k]] = 0; 
-				    num++; 
-				    demon_x[k] = 0; 
-				    demon_y[k] = rand() % (width - 1); // Generate new 
-				    space[demon_x[k]][demon_y[k]] = 2; 
+			if(Display[i][j] == 3){ // If it is Bullet then... 
+				for(int k = 0 ; k < nEnemies ; k++){ // Hit enemy? 
+				  if(i == Enemy_x[k] && j == Enemy_y[k]){ 
+			    	Display[Enemy_x[k]][Enemy_y[k]] = 0; 
+				    Score++; 
+				    Enemy_x[k] = 0; 
+				    Enemy_y[k] = rand() % (width - 1); // Generate new 
+				    Display[Enemy_x[k]][Enemy_y[k]] = 2; 
 			    }
 				}
 				for(int k = 0 ; k < 10 ; k++) 
-					if(i == bs_x[i] + 1 && j == bs_y[i]) // Hit boss? 
-						bs_HP--; 
+					if(i == Boss_x[i] + 1 && j == Boss_y[i]) // Hit boss? 
+						Boss_HP--; 
 				if(i == player_x && j == player_y) // Hit player? 
-					CRCM = 3; 
-				space[i][j] = 0; 
-				if(i > 0) space[i - 1][j] = 3; // Move bullet forward 
+					GameState = 3; 
+				Display[i][j] = 0; 
+				if(i > 0) Display[i - 1][j] = 3; // Move bullet forward 
 			}
 		}
 	}
+	
 //*************************************************************************** 
 // Enemy collisions & generation 
-	for(int k = 0 ; k < dfly_time ; k++){ 
-   	if(demon_x[k] == player_x && demon_y[k] == player_y) // Enemy hit player 
-			CRCM = 3; 
-  	if(demon_x[k] >= height){ // Demon runs out of screen // Is here a bug? (using ">" instead of ">=" ) 
-  		space[demon_x[k]][demon_y[k]] = 0; 
-  		demon_x[k] = 0; 
-  		demon_y[k] = rand() % (width-1); // Generate new 
-	 		space[demon_x[k]][demon_y[k]] = 2; 
+	for(int k = 0 ; k < nEnemies ; k++){ 
+   	if(Enemy_x[k] == player_x && Enemy_y[k] == player_y) // Enemy hit player 
+			GameState = 3; 
+  	if(Enemy_x[k] >= height){ // Enemy runs out of screen // Is here a bug? (using ">" instead of ">=" ) 
+  		Display[Enemy_x[k]][Enemy_y[k]] = 0; 
+  		Enemy_x[k] = 0; 
+  		Enemy_y[k] = rand() % (width-1); // Generate new 
+	 		Display[Enemy_x[k]][Enemy_y[k]] = 2; 
 	 	}
 	}
 	
@@ -102,160 +100,157 @@ void RealTimeProcessing(void){
 	if(n == 10){ 
 		n = 0; // !!Moved counterclear operation here 
 		
-		for(int k = 0; k < dfly_time; k++){ // All demon move forward 
-			space[demon_x[k]][demon_y[k]] = 0; 
-			demon_x[k]++; 
-			space[demon_x[k]][demon_y[k]] = 2; 
+		for(int k = 0; k < nEnemies; k++){ // All Enemy move forward 
+			Display[Enemy_x[k]][Enemy_y[k]] = 0; 
+			Enemy_x[k]++; 
+			Display[Enemy_x[k]][Enemy_y[k]] = 2; 
 		}
-		if(bs_appear == 1){ // When boss apperaing... 
-			if(bs_skill == 0){ // Not skilled 
+		if(Boss_appear == 1){ // When boss apperaing... 
+			if(Boss_skill == 0){ // Not skilled 
 				for(int i = 0; i < 10; i++){ 
-					space[bs_x[i]][bs_y[i]] = 0; 
-					bs_y[i] += bs_move; 
-					space[bs_x[i]][bs_y[i]] = 6; // Perform boss horizontal move 
+					Display[Boss_x[i]][Boss_y[i]] = 0; 
+					Boss_y[i] += Boss_move; 
+					Display[Boss_x[i]][Boss_y[i]] = 6; // Perform boss horizontal move 
 				}
-					if(bs_y[2] == 0 || bs_y[4] == width - 1) // !!Combined if statements 
-						bs_move = -bs_move; // Boss touching edge, change direction. 
+					if(Boss_y[2] == 0 || Boss_y[4] == width - 1) // !!Combined if statements 
+						Boss_move = -Boss_move; // Boss touching edge, change direction. 
 			}
-			else if(bs_HP < 50){ // Skilled and low HP 
+			else if(Boss_HP < 50){ // Skilled and low HP 
 				for(int i = 0 ; i < 10 ; i++){ // Move boss forward 
-       		space[bs_x[i]][bs_y[i]] = 0; 
-        	bs_x[i]++; 
+       		Display[Boss_x[i]][Boss_y[i]] = 0; 
+        	Boss_x[i]++; 
 				}
-				bs_y[0] = player_y; 
-				bs_y[1] = player_y-1; 
-				bs_y[2] = player_y-2; 
-				bs_y[3] = player_y+1; 
-				bs_y[4] = player_y+2; 
-				bs_y[5] = player_y; 
-				bs_y[6] = player_y-1; 
-				bs_y[7] = player_y+1; 
-				bs_y[8] = player_y-1; 
-				bs_y[9] = player_y+1; // Set coords 
+				Boss_y[0] = player_y; 
+				Boss_y[1] = player_y-1; 
+				Boss_y[2] = player_y-2; 
+				Boss_y[3] = player_y+1; 
+				Boss_y[4] = player_y+2; 
+				Boss_y[5] = player_y; 
+				Boss_y[6] = player_y-1; 
+				Boss_y[7] = player_y+1; 
+				Boss_y[8] = player_y-1; 
+				Boss_y[9] = player_y+1; // Set coords 
  	     	for(int i = 0 ; i < 10 ; i++) 
-					space[bs_x[i]][bs_y[i]] = 6; // Display boss 
-				bs_skill = 1;
+					Display[Boss_x[i]][Boss_y[i]] = 6; // Display boss 
+				Boss_skill = 1;
 			}
 		}
 	}
-
+	
 //*************************************************************************** 
-// Boss hit 
+// Boss hit attack 
 	for(int i = 0 ; i < 10 ; i++) 
-		if(bs_x[i] == player_x&&bs_y[i] == player_y) CRCM = 3; 
-
+		if(Boss_x[i] == player_x&&Boss_y[i] == player_y) GameState = 3; 
+	
 //*************************************************************************** 
-// Render walls 
+// Boss bullet attack 
+	if(Boss_appear== 1 && Boss_skill == 0){ // Appeared but not skilled 
+		Display[Boss_atk_x][Boss_atk_y] = 0; // Create Bullet Stream 
+		Boss_atk_x++; 
+		Boss_atk_y = Boss_y[0]; 
+		Display[Boss_atk_x][Boss_atk_y] = 3; 
+		if (Boss_atk_x == height) Boss_atk_x = 2; 
+	}
+	
+//*************************************************************************** 
+// Draw walls 
 	for(int i = 0 ; i < height ; i++){ 
 	    for(int j = 0 ; j < width ; j++){ 
 		    if(j == width - 1) 
-			    space[i][j] = 4; 
+			    Display[i][j] = 4; 
 		    else if(i == height - 1) 
-			    space[i][j] = 5; 
+			    Display[i][j] = 5; 
 	    }
 	  }
-
+	
 //*************************************************************************** 
-// Render Boss 
-	if(num>5){ 
-	    bs_appear = 1; 
+// Draw Boss 
+	if(Score>5){ 
+	    Boss_appear = 1; 
       for(int i = 0 ; i < 10 ; i++) 
-    	   space[bs_x[i]][bs_y[i]] = 6;
+    	   Display[Boss_x[i]][Boss_y[i]] = 6;
 	}
-
+	
 //*************************************************************************** 
 // Victory 
-	if(bs_HP == 0) CRCM = 2; 
-
-//*************************************************************************** 
-// Boss attack 
-	if(bs_appear== 1 && bs_skill == 0){ // Appeared but not skilled 
-		space[bs_atk_x][bs_atk_y] = 0; // Create Bullet Stream 
-		bs_atk_x++; 
-		bs_atk_y = bs_y[0]; 
-		space[bs_atk_x][bs_atk_y] = 3; 
-		if (bs_atk_x == height) bs_atk_x = 2; 
-	}
+	if(Boss_HP == 0) GameState = 2; 
 }
 
 
 
-void startup(void){ 
-    player_x = height - 2; 
-    player_y = width / 2; 
-    space[player_x][player_y] = 1; // Initial Position 
-    
-    for(int i = 0; i < height; i++) 
-    	for(int j = 0; j < width; j++) 
-    		space[i][j] = 0; // Clear Display 
-  	
-    for(int k = 0 ; k < dfly_time ; k++){ // Initialize & Display Enemies 
-	    demon_x[k] = rand() % 2; 
-	    demon_y[k] = rand() % (width - 1); 
-	    space[demon_x[k]][demon_x[k]] = 2; 
-    }
-
-    CRCM = 0; // Initialize Mode 
-    
-    num = 0; // Initialize Score 
-}
-
-
-void BS(void){ 
-  bs_HP = 250;    // Boss HP 250 
-  bs_appear = 0;  // Boss not appearing 
-  bs_move = 1;    // Boss is moving 
-  bs_skill = 0;   // Boss is not skilled 
+void Init(void){ 
+  player_x = height - 2; 
+  player_y = width / 2; 
+  Display[player_x][player_y] = 1; // Initial Position 
   
-  bs_x[0] = 1; bs_y[0] = 12;	
-  bs_x[1] = 1; bs_y[1] = 11;	
-  bs_x[2] = 1; bs_y[2] = 10;	
-  bs_x[3] = 1; bs_y[3] = 13;	
-  bs_x[4] = 1; bs_y[4] = 14;	
-  bs_x[5] = 0; bs_y[5] = 12;	
-  bs_x[6] = 0; bs_y[6] = 11;	
-  bs_x[7] = 0; bs_y[7] = 13;	
-  bs_x[8] = 2; bs_y[8] = 11;	
-  bs_x[9] = 2; bs_y[9] = 13; // Initialize Boss Shape 
+  for(int i = 0; i < height; i++) 
+  	for(int j = 0; j < width; j++) 
+  		Display[i][j] = 0; // Clear Display 
   
-  bs_atk_x = bs_x[0] + 1; 
-  bs_atk_y = bs_y[0]; // Initialize BossGun Position 
+  for(int k = 0 ; k < nEnemies ; k++){ // Initialize & Display Enemies 
+	  Enemy_x[k] = rand() % 2; 
+	  Enemy_y[k] = rand() % (width - 1); 
+	  Display[Enemy_x[k]][Enemy_x[k]] = 2; 
+  }
+	
+  GameState = 0; // Initialize Mode 
+  Score = 0; // Initialize Score 
+  
+  
+  Boss_HP = 250;    // Boss HP 250 
+  Boss_appear = 0;  // Boss not appearing 
+  Boss_move = 1;    // Boss is moving 
+  Boss_skill = 0;   // Boss is not skilled 
+  
+  Boss_x[0] = 1; Boss_y[0] = 12;	
+  Boss_x[1] = 1; Boss_y[1] = 11;	
+  Boss_x[2] = 1; Boss_y[2] = 10;	
+  Boss_x[3] = 1; Boss_y[3] = 13;	
+  Boss_x[4] = 1; Boss_y[4] = 14;	
+  Boss_x[5] = 0; Boss_y[5] = 12;	
+  Boss_x[6] = 0; Boss_y[6] = 11;	
+  Boss_x[7] = 0; Boss_y[7] = 13;	
+  Boss_x[8] = 2; Boss_y[8] = 11;	
+  Boss_x[9] = 2; Boss_y[9] = 13; // Initialize Boss Shape 
+  
+  Boss_atk_x = Boss_x[0] + 1; 
+  Boss_atk_y = Boss_y[0]; // Initialize BossGun Position 
 }
 
 
 
-void UpdateWhenGetch(void){ 
+void MovePlayer(void){ 
   char input;
   if(kbhit()){ // On hitting keaboard... 
 		input = getch();  
 		
     if(input == 'w' && player_x > 0){ // Forward 
-			space[player_x][player_y] = 0; 
+			Display[player_x][player_y] = 0; 
 			player_x--; 
-			space[player_x][player_y] = 1; 
+			Display[player_x][player_y] = 1; 
 		}
 		
 		if(input == 's' && player_x < height - 2){ // Backward 
-	    space[player_x][player_y] = 0; 
+	    Display[player_x][player_y] = 0; 
 			player_x++; 
-			space[player_x][player_y] = 1; 
+			Display[player_x][player_y] = 1; 
 		}
 		
 		if(input == 'a' && player_y > 0){ // Left 
-	    space[player_x][player_y] = 0;
+	    Display[player_x][player_y] = 0;
 			player_y--;
-			space[player_x][player_y] = 1;
+			Display[player_x][player_y] = 1;
 		}
 		
 		if(input == 'd' && player_y < width - 2){ // Right 
-	    space[player_x][player_y] = 0; 
+	    Display[player_x][player_y] = 0; 
 			player_y++; 
-			space[player_x][player_y] = 1; 
+			Display[player_x][player_y] = 1; 
 		}
 		
-		if(input == 'z') CRCM = 1; // Exit 
+		if(input == 'z') GameState = 1; // Exit 
 		
-		if(input == 'j') space[player_x - 1][player_y] = 3; // Fire Bullet 
+		if(input == 'j') Display[player_x - 1][player_y] = 3; // Fire Bullet 
 	}
 }
 
@@ -268,20 +263,20 @@ int main(void){
 	system ("cls"); 
 	HideCursor(); // Window Init 
     
-	startup(); 
-	BS(); // Game Init 
+	Init(); // Game Init 
 	
   while(1){ 
    	printf("[ WASD ] 上下左右\n");
     printf("[ J ] 键射击\n\n");
-    printf("击败敌机: [ %d ] 架\n", num);
-    if(bs_appear == 1) printf("警告!BOSS出现!\nBOSS血量: [ %d ] " , bs_HP);
+    printf("击败敌机: [ %d ] 架\n", Score);
+    if(Boss_appear == 1) printf("警告!BOSS出现!\nBOSS血量: [ %d ] " , Boss_HP);
 
-	  output(); // Render 
-    RealTimeProcessing(); // Engine Cycle 
-    UpdateWhenGetch(); // Update Player 
+	  Render(); // Render 
+    EngineCycle(); // Engine Cycle 
+    MovePlayer(); // Update Player 
 
-    if(CRCM) break; // Exit 
+    if(GameState) break; // Exit 
+    Sleep(10); // !!Slowing down main loop to avoid flashes 
   }
 	system("cls"); 
 	
@@ -289,15 +284,15 @@ int main(void){
 	for(int i = 0; i < 10; i++) printf("\n"); 
 	for(int i= 0; i < 12; i++) printf(" "); 
 	
-	switch(CRCM){ // !!Changed to switch-case structure  
+	switch(GameState){ // !!Changed to switch-case structure  
 		case 1: { 
-			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t",num); 
+			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t",Score); 
 			printf(" 退出游戏成功\n\n"); 
     	Sleep (2000); 
     	break; 
 		}
 		case 2: { 
-    	printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t 恭喜您胜利了\n",num);
+    	printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t 恭喜您胜利了\n",Score);
     	Sleep (2000); 
     	break; 
 		}
