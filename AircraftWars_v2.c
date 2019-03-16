@@ -95,10 +95,10 @@ void EngineCycle(void){
 	
 //*************************************************************************** 
 // Enemy & Boss movements 
-	static int n = 0; // Counter 
-	if(n < 10) n++; 
-	if(n == 10){ 
-		n = 0; // !!Moved counterclear operation here 
+	static int timer = 0; // Counter 
+	if(timer < 10) timer++; 
+	if(timer == 10){ 
+		timer = 0; // !!Moved counterclear operation here 
 		
 		for(int k = 0; k < nEnemies; k++){ // All Enemy move forward 
 			Display[Enemy_x[k]][Enemy_y[k]] = 0; 
@@ -179,18 +179,18 @@ void EngineCycle(void){
 
 
 void Init(void){ 
+	for(int i = 0; i < height; i++) 
+  	for(int j = 0; j < width; j++) 
+  		Display[i][j] = 0; // Clear Display 
+  
   player_x = height - 2; 
   player_y = width / 2; 
   Display[player_x][player_y] = 1; // Initial Position 
   
-  for(int i = 0; i < height; i++) 
-  	for(int j = 0; j < width; j++) 
-  		Display[i][j] = 0; // Clear Display 
-  
   for(int k = 0 ; k < nEnemies ; k++){ // Initialize & Display Enemies 
-	  Enemy_x[k] = rand() % 2; 
-	  Enemy_y[k] = rand() % (width - 1); 
-	  Display[Enemy_x[k]][Enemy_x[k]] = 2; 
+		Enemy_x[k] =  rand() % 2; 
+	  Enemy_y[k] =  rand() % (width - 1); 
+	  Display[Enemy_x[k]][Enemy_y[k]] = 2; 
   }
 	
   GameState = 0; // Initialize Mode 
