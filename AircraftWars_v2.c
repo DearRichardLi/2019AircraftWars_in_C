@@ -220,37 +220,41 @@ void Init(void){
 
 
 void MovePlayer(void){ 
-  char input;
   if(kbhit()){ // On hitting keaboard... 
-		input = getch();  
-		
-    if(input == 'w' && player_x > 0){ // Forward 
-			Display[player_x][player_y] = 0; 
-			player_x--; 
-			Display[player_x][player_y] = 1; 
+		switch(getch()){ // !!Changed to switch-case structure 
+			case 'w': 
+			case 'W': 
+				if(player_x > 0){ // Forward 
+					Display[player_x][player_y] = 0; 
+					player_x--; 
+					Display[player_x][player_y] = 1; 
+				} break; 
+			case 's': 
+			case 'S': 
+				if(player_x < height - 2){ // Backward 
+		    	Display[player_x][player_y] = 0; 
+					player_x++; 
+					Display[player_x][player_y] = 1; 
+				} break; 
+			case 'a': 
+			case 'A': 
+				if(player_y > 0){ // Left 
+	    		Display[player_x][player_y] = 0;
+					player_y--;
+					Display[player_x][player_y] = 1;
+				} break; 
+			case 'd': 
+			case 'D': 
+				if(player_y < width - 2){ // Right 
+	    		Display[player_x][player_y] = 0; 
+					player_y++; 
+					Display[player_x][player_y] = 1; 
+				} break; 
+			case 'z': 
+				GameState = 1; break; // Exit 
+			case 'j': 
+				Display[player_x - 1][player_y] = 3; break; // Fire Bullet 
 		}
-		
-		if(input == 's' && player_x < height - 2){ // Backward 
-	    Display[player_x][player_y] = 0; 
-			player_x++; 
-			Display[player_x][player_y] = 1; 
-		}
-		
-		if(input == 'a' && player_y > 0){ // Left 
-	    Display[player_x][player_y] = 0;
-			player_y--;
-			Display[player_x][player_y] = 1;
-		}
-		
-		if(input == 'd' && player_y < width - 2){ // Right 
-	    Display[player_x][player_y] = 0; 
-			player_y++; 
-			Display[player_x][player_y] = 1; 
-		}
-		
-		if(input == 'z') GameState = 1; // Exit 
-		
-		if(input == 'j') Display[player_x - 1][player_y] = 3; // Fire Bullet 
 	}
 }
 
@@ -288,17 +292,17 @@ int main(void){
 		case 1: { 
 			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t",Score); 
 			printf(" 退出游戏成功\n\n"); 
-    	Sleep (2000); 
+    	Sleep(2000); 
     	break; 
 		}
 		case 2: { 
     	printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t 恭喜您胜利了\n",Score);
-    	Sleep (2000); 
+    	Sleep(2000); 
     	break; 
 		}
 	  default: { 
 			printf("\b你失败了\n");
-			Sleep (2000); 
+			Sleep(2000); 
 			break; 
 		}
 	}
