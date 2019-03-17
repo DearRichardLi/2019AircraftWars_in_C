@@ -4,16 +4,15 @@
 #include <conio.h> 
 #include <imm.h> 
 
-//DEFINE BASIC GLOBAL VARIABLE START 
 #define height 21 
 #define width 26 
-#define nEnemies 5 // Total enemies 
+#define nEnemies 8 // Total enemies 
 
 // Game settings 
 #define Boss_Speed 10 
-#define Boss_InitialHP 200 
-#define Boss_SkilledHP 50 
-#define Boss_ScoreTrigger 10 
+#define Boss_InitialHP 100 
+#define Boss_SkilledHP 20 
+#define Boss_ScoreTrigger 16 
 
 int Display[height][width]; // Display 
 
