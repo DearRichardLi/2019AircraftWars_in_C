@@ -157,8 +157,8 @@ void EngineCycle(void){
 		Display[Boss_atk_x][Boss_atk_y] = 0; // Create Bullet Stream 
 		Boss_atk_x++; 
 		Boss_atk_y = Boss_y[0]; 
-		Display[Boss_atk_x][Boss_atk_y] = 7; 
-		if (Boss_atk_x >= height) Boss_atk_x = 2; 
+		if(Boss_atk_x >= height) Boss_atk_x = 2; // Boundary restrictions should before access  
+		Display[Boss_atk_x][Boss_atk_y] = 7; // Bug here: access out of bounds 
 	}
 	
 //*************************************************************************** 
@@ -287,7 +287,7 @@ int main(void){
 				if(iteration & 0x08) 
 					puts("警告!BOSS出现!"); 
 				else puts("                "); 
-				printf("BOSS血量: [ %d ] ", Boss_HP); 
+				printf("BOSS血量: [ %3d ] ", Boss_HP); 
 		}
 		Render(); // Render 
 		EngineCycle(); // Engine Cycle 
