@@ -9,6 +9,12 @@
 #define width 26 
 #define nEnemies 5 // Total enemies 
 
+// Game settings 
+#define Boss_Speed 10 
+#define Boss_InitialHP 200 
+#define Boss_SkilledHP 50 
+#define Boss_ScoreTrigger 10 
+
 int Display[height][width]; // Display 
 
 int player_x, player_y; // Player position 
@@ -71,7 +77,7 @@ void EngineCycle(void){
 					}
 				}
 				for(int k = 0; k < 10; k++) 
-					if(i == Boss_x[i] + 1 && j == Boss_y[i]) // Hit boss? 
+					if(i == Boss_x[k] + 1 && j == Boss_y[k]) // Hit boss? 
 						Boss_HP--; 
 			}
 			if(bit == 3 || bit == 7){ 
@@ -99,8 +105,8 @@ void EngineCycle(void){
 //*************************************************************************** 
 // Enemy & Boss movements 
 	static int timer = 0; // Counter 
-	if(timer < 10) timer++; 
-	if(timer == 10){ 
+	if(timer < Boss_Speed) timer++; 
+	else{ 
 		timer = 0; // !!Moved counterclear operation here 
 		
 		for(int k = 0; k < nEnemies; k++){ // All Enemy move forward 
@@ -118,7 +124,7 @@ void EngineCycle(void){
 					if(Boss_y[2] <= 0 || Boss_y[4] >= width - 1) // !!Combined if statements 
 						Boss_move = -Boss_move; // Boss touching edge, change direction. 
 			}
-			else if(Boss_HP <= 50){ // Skilled and low HP // !!Bug here 
+			if(Boss_HP <= Boss_SkilledHP){ // Low HP, then skilled 
 				for(int i = 0; i < 10; i++){ // Move boss forward 
 					Display[Boss_x[i]][Boss_y[i]] = 0; 
 					Boss_x[i]++; 
@@ -168,7 +174,7 @@ void EngineCycle(void){
 	
 //*************************************************************************** 
 // Draw Boss 
-	if(Score >= 5){ 
+	if(Score >= Boss_ScoreTrigger){ 
 			Boss_appear = 1; 
 			for(int i = 0; i < 10; i++) 
 				Display[Boss_x[i]][Boss_y[i]] = 6; 
@@ -200,7 +206,7 @@ void Init(void){
 	Score = 0; // Initialize Score 
 	
 	
-	Boss_HP = 250; 		// Boss HP 250 
+	Boss_HP = Boss_InitialHP; 		// Boss HP 250 
 	Boss_appear = 0; 	// Boss not appearing 
 	Boss_move = 1; 		// Boss is moving 
 	Boss_skill = 0; 	// Boss is not skilled 
@@ -272,17 +278,22 @@ int main(void){
 	
 	Init(); // Game Init 
 	
+	unsigned int iteration = 0; 
 	do{ 
 		printf("[ WASD ] 上下左右\n"); 
 		printf("[ J ] 键射击\n\n"); 
 		printf("击败敌机: [ %d ] 架\n", Score); 
-		if(Boss_appear == 1) printf("警告!BOSS出现!\nBOSS血量: [ %d ] " , Boss_HP); 
-		
+		if(Boss_appear == 1){ // Flash boss title 
+				if(iteration & 0x10) 
+					printf("警告!BOSS出现!\nBOSS血量: [ %d ] ", Boss_HP); 
+				else printf("                \n                 "); 
+		}
 		Render(); // Render 
 		EngineCycle(); // Engine Cycle 
 		MovePlayer(); // Update Player 
 		
 		Sleep(10); // !!Slowing down main loop to avoid flashes 
+		iteration++; 
 	}while(!GameState); 
 	system("cls"); 
 	
@@ -292,22 +303,21 @@ int main(void){
 	
 	switch(GameState){ // !!Changed to switch-case structure 
 		case 1: { 
-			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t",Score); 
+			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t", Score); 
 			printf(" 退出游戏成功\n\n"); 
-			Sleep(2000); 
 			break; 
 		}
 		case 2: { 
-			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t 恭喜您胜利了\n",Score); 
-			Sleep(2000); 
+			printf("\n\t  您一共击毁\n\t    [ %d ]\n\t  架敌方飞机\n\n\n\t 恭喜您胜利了\n", Score); 
 			break; 
 		}
 		default: { 
 			printf("\b你失败了\n"); 
-			Sleep(2000); 
 			break; 
 		}
 	}
+	Sleep(2000); 
 	system("Pause"); 
+	return 0; 
 }
 
