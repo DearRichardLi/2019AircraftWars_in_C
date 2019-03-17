@@ -44,17 +44,17 @@ void Render(void){ // Render On Screen
 	for(int i = 0; i < height; i++){ 
 		for(int j = 0; j < width; j++){ // !!Changed to switch-case structure 
 			switch(Display[i][j]){ 
-				case 0: printf(" "); break; // Empty 
-				case 1: printf("U"); break; // Player 
-				case 2: printf("*"); break; // Enemy 
-				case 3: printf("o"); break; // Bullet - User 
-				case 7: printf("x"); break; // Bullet - Boss 
+				case 0: putch(' '); break; // Empty 
+				case 1: putch('U'); break; // Player 
+				case 2: putch('*'); break; // Enemy 
+				case 3: putch('o'); break; // Bullet - User 
+				case 7: putch('x'); break; // Bullet - Boss 
 				case 4: printf("||"); break; // Wall 
-				case 5: printf("="); break; // Bottom 
-				case 6: if(Boss_appear == 1) printf("#"); break; // Boss 
+				case 5: putch('='); break; // Bottom 
+				case 6: if(Boss_appear == 1) putch('#'); break; // Boss 
 			}
 		}
-		printf("\n"); 
+		putch('\n'); 
 	}
 }
 
@@ -280,13 +280,14 @@ int main(void){
 	
 	unsigned int iteration = 0; 
 	do{ 
-		printf("[ WASD ] 上下左右\n"); 
-		printf("[ J ] 键射击\n\n"); 
+		puts("[ WASD ] 上下左右"); 
+		puts("[ J ] 键射击\n"); 
 		printf("击败敌机: [ %d ] 架\n", Score); 
 		if(Boss_appear == 1){ // Flash boss title 
-				if(iteration & 0x10) 
-					printf("警告!BOSS出现!\nBOSS血量: [ %d ] ", Boss_HP); 
-				else printf("                \n                 "); 
+				if(iteration & 0x08) 
+					puts("警告!BOSS出现!"); 
+				else puts("                "); 
+				printf("BOSS血量: [ %d ] ", Boss_HP); 
 		}
 		Render(); // Render 
 		EngineCycle(); // Engine Cycle 
@@ -298,8 +299,8 @@ int main(void){
 	system("cls"); 
 	
 	// Print Blank 
-	for(int i = 0; i < 10; i++) printf("\n"); 
-	for(int i= 0; i < 12; i++) printf(" "); 
+	for(int i = 0; i < 10; i++) putch('\n'); 
+	for(int i= 0; i < 12; i++) putch(' '); 
 	
 	switch(GameState){ // !!Changed to switch-case structure 
 		case 1: { 
