@@ -1,5 +1,6 @@
 #include <stdio.h> 
 #include <stdlib.h> 
+#include <time.h> 
 #include <windows.h> 
 #include <conio.h> 
 #include <imm.h> 
@@ -187,6 +188,8 @@ void EngineCycle(void){
 
 
 void Init(void){ 
+	srand((unsigned)time(NULL)); // Random seed 
+	
 	for(int i = 0; i < height; i++) 
 		for(int j = 0; j < width; j++) 
 			Display[i][j] = 0; // Clear Display 
